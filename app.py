@@ -1,12 +1,14 @@
 from tkinter import *
 from tkinter import ttk
-from PIL import Image, ImageTk
 import SqlList
+from PIL import Image, ImageTk
+import Explorer
+
 
 class main_form():
     def __init__(self):
         form = Tk()
-        form.geometry('1080x400')
+        form.geometry('1200x500')
         form.title("База данных магазина")
         tabControl = ttk.Notebook(form)
         self.tab1 = ttk.Frame(tabControl)
@@ -22,12 +24,27 @@ class main_form():
 
         form.mainloop()
 
+    def ExplorerCall(self):
+        Exp = Explorer.ExApp()
+        self.image_path = Exp.pathget()
+        image = Image.open( self.image_path)
+        image = image.resize((150, 150), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        self.PPhoto.configure(image=photo)
+        self.PPhoto.image = photo
+
 
     def Products(self):
-        img = Image.open('dog.png')
-        img = img.resize((250, 250))
-        tkimage = ImageTk.PhotoImage(img)
-        self.PPhoto = ttk.Label(self.tab1, image=tkimage).grid(column = 0, row = 0,padx = 30,pady = 30)
+        image = Image.open("placepicture.png")
+        image = image.resize((150, 150), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        self.PPhoto = ttk.Label(self.tab1, image=photo)
+        self.PPhoto.image = photo
+        self.PPhoto.configure(anchor="center")
+        self.PPhoto.grid(column=0, row=0, padx=1, pady=1, ipadx=60)
+
+        btn = ttk.Button(self.tab1,text="Выбрать изображение",command=self.ExplorerCall).grid(column = 1, row = 0,padx = 1,pady = 1,ipadx = 60)
+
         self.PName = ttk.Label(self.tab1,text = "Название товара").grid(column = 0, row = 1,padx = 30,pady = 30)
         self.PNum = ttk.Label(self.tab1, text="Количество").grid(column=0, row=2, padx=30, pady=30)
         self.PPrice = ttk.Label(self.tab1, text="Цена").grid(column=0, row=3, padx=30, pady=30)
@@ -51,7 +68,7 @@ class main_form():
         self.PDel_but = ttk.Button(self.tab1, text="Удалить", command=lambda: self.Del_Click(SqlList.P_Del_sql)).grid(column=2, row=4, padx=30, pady=30)
         columns = ("Id","PName", "PNum", "PPrice")
         self.tree = ttk.Treeview(self.tab1,columns=columns, show="headings")
-        self.tree.place(x = 400, y = 30)
+        self.tree.place(x = 550, y = 30)
         self.tree.heading("Id", text="Id")
         self.tree.heading("PName", text="Название")
         self.tree.heading("PNum", text="Количество")
@@ -92,10 +109,16 @@ class main_form():
         self.PNum_entry.insert(0, str(values[2]))
         self.PPrice_entry.delete(0, 'end')
         self.PPrice_entry.insert(0, str(values[3]))
+        image = Image.open(str(values[4]))
+        image = image.resize((150, 150), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        self.PPhoto.configure(image=photo)
+        self.PPhoto.image = photo
+
 
 
     def PData(self):
-        data = [(self.PName_entry.get(), self.PNum_entry.get(), self.PPrice_entry.get())]
+        data = [(self.PName_entry.get(), self.PNum_entry.get(), self.PPrice_entry.get(), self.image_path)]
         return data
 
 
@@ -114,6 +137,15 @@ class main_form():
         values = self.tree.item(selected, option="values")
         SqlList.Del(sql + str(values[0]))
         self.Tableload(SqlList.PTableGet())
+        if(len(self.tree.get_children()) == 0):
+            image = Image.open("placepicture.png")
+            image = image.resize((150, 150), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            self.PPhoto.configure(image=photo)
+            self.PPhoto.image = photo
+            self.PName_entry.delete(0, 'end')
+            self.PNum_entry.delete(0, 'end')
+            self.PPrice_entry.delete(0, 'end')
 
     def Change_Click(self,sql,Data):
         selected = self.tree.selection()[0]
